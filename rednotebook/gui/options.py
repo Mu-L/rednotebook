@@ -385,13 +385,19 @@ class OptionsManager:
 
             visible = self.config.read("closeToTray") == 1
             # The tray icon is now only instantiated on Windows.
-            if hasattr(self.main_window, "tray_icon"):
+            if self.main_window.tray_icon:
                 self.main_window.tray_icon.set_visible(visible)
         else:
             # Reset some options
             self.main_window.set_font(self.config.read("mainFont", editor.DEFAULT_FONT))
 
-        self.dialog.hide()
+        # Ensure the dialog is properly hidden
+        # Use the underlying GTK dialog directly to avoid any wrapper issues
+        self.dialog.dialog.hide()
+
+        # Process any pending GTK events to ensure the dialog is actually hidden
+        while Gtk.events_pending():
+            Gtk.main_iteration()
 
     def add_all_options(self):
         for option in self.options:
